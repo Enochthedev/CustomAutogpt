@@ -16,7 +16,7 @@ namespace AutoGPTDotNet.Core.AI
             // Initialize the OpenAI client
             OpenAIClient openAiClient = new(apiKey);
             // Retrieve the ChatClient for the desired model
-            _chatClient = openAiClient.GetChatClient("gpt-4");
+            _chatClient = openAiClient.GetChatClient("gpt-3.5-turbo");
         }
 
         public async Task<string> GenerateResponse(string input)

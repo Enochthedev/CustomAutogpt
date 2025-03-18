@@ -31,7 +31,12 @@ namespace AutoGPTDotNet.Core.AI.Models
             response.EnsureSuccessStatusCode();
 
             var responseString = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<JsonElement>(responseString).GetProperty("text").GetString();
+            var jsonElement = JsonSerializer.Deserialize<JsonElement>(responseString);
+            if (jsonElement.TryGetProperty("text", out var textProperty) && textProperty.GetString() is string text)
+            {
+                return text;
+            }
+            throw new InvalidOperationException("The response does not contain a valid 'text' property.");
         }
     }
 }
