@@ -1,0 +1,35 @@
+# --- 🔹 Build & Compiled Files ---
+bin/
+obj/
+out/
+*.exe
+*.dll
+*.pdb
+*.log
+*.cache
+
+# --- 🔹 User-Specific & IDE Configs ---
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.DS_Store
+Thumbs.db
+
+# --- 🔹 Dependencies ---
+/packages/
+/node_modules/
+/dist/
+
+# --- 🔹 Environment & Config Secrets ---
+.env
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+
+# --- 🔹 .NET & NuGet ---
+*.nupkg
+project.lock.json
+.nuget/
