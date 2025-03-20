@@ -10,12 +10,8 @@ builder.Services.AddControllers(); // Register Controllers
 
 // Register AI Models
 builder.Services.AddSingleton<HttpClient>();
-// builder.Services.AddSingleton<IAgentModel, OpenAIModel>();  // Default AI Model
-// builder.Services.AddSingleton<IAgentModel, DeepSeekModel>();
-// builder.Services.AddSingleton<IAgentModel, MistralModel>();
-// builder.Services.AddSingleton<IAgentModel, ClaudeModel>();
-// builder.Services.AddSingleton<IAgentModel, LocalLLMModel>();
 
+builder.Services.AddSingleton<ContextManager>();
 builder.Services.AddSingleton<IAgentModel>(sp =>
     new OpenAIModel(sp.GetRequiredService<IConfiguration>().GetValue<string>("AIModels:OpenAI:ApiKey") ?? throw new ArgumentNullException("AIModels:OpenAI:ApiKey"))
 );
@@ -32,6 +28,13 @@ builder.Services.AddSingleton<INLPProcessor>(sp =>
     new OpenAINLPProcessor(
         sp.GetRequiredService<HttpClient>(),
         sp.GetRequiredService<IConfiguration>().GetValue<string>("AIModels:OpenAI:ApiKey") ?? throw new ArgumentNullException("OpenAI API Key is missing.")
+    )
+);
+builder.Services.AddSingleton<AIModelClient>(sp =>
+    new AIModelClient(
+        sp.GetRequiredService<HttpClient>(),
+        sp.GetRequiredService<ContextManager>(), // ✅ Now injecting ContextManager
+        "http://localhost:11434/api/chat"
     )
 );
 

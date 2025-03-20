@@ -44,7 +44,7 @@ namespace AutoGPTDotNet.Core.NLP{
             {
                 Intent = ExtractIntent(nlpAnalysis),
                 Entities = ExtractEntities(nlpAnalysis),
-                ProcessedPrompt = prompt // Can be further optimized later
+                ProcessedPrompt = prompt 
             };
 
             return nlpResult;

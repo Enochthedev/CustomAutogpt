@@ -31,7 +31,14 @@ namespace AutoGPTDotNet.Core.AI.Models
             response.EnsureSuccessStatusCode();
 
             var responseString = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<JsonElement>(responseString).GetProperty("choices")[0].GetProperty("text").GetString();
+            var jsonElement = JsonSerializer.Deserialize<JsonElement>(responseString);
+            if (jsonElement.TryGetProperty("choices", out var choices) && 
+                choices.GetArrayLength() > 0 && 
+                choices[0].TryGetProperty("text", out var text))
+            {
+                return text.GetString() ?? string.Empty;
+            }
+            return string.Empty;
         }
     }
 }
