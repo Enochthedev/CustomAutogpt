@@ -3,12 +3,12 @@ using GemsAi.Core.Memory;
 
 namespace GemsAi.Core.Agent
 {
-    public class ChronoAgent : IAgent
+    public class GemsAgent : IAgent
     {
         private readonly List<ITask> _tasks;
         private readonly IMemoryStore _memory;
 
-        public ChronoAgent(List<ITask> tasks, IMemoryStore memory)
+        public GemsAgent(List<ITask> tasks, IMemoryStore memory)
         {
             _tasks = tasks;
             _memory = memory;

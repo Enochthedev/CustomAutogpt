@@ -1,4 +1,5 @@
 using GemsAi.Core.AI;
+using GemsAi.Core.LearnedTasks;
 using GemsAi.Core.Tasks;
 
 namespace GemsAi.Core.Tasks
@@ -11,8 +12,6 @@ namespace GemsAi.Core.Tasks
         public CreateTaskCommand(IAIClient ai)
         {
             _ai = ai;
-
-            // Ensure folder exists
             if (!Directory.Exists(_taskFolder))
                 Directory.CreateDirectory(_taskFolder);
         }
@@ -22,27 +21,71 @@ namespace GemsAi.Core.Tasks
 
         public async Task<string> ExecuteAsync(string input)
         {
-var prompt = $@"
+            var basePrompt = $@"
 You are an AI system helping build modular tasks for a .NET AI agent.
 Given the user's request below, generate a C# class that implements the ITask interface.
-- The class should have a clear `CanHandle()` and `ExecuteAsync()`
+- The class should have clear implementations for CanHandle() and ExecuteAsync().
 - It must be self-contained and compile-ready.
-- It should go into the namespace `GemsAi.Core.Tasks`
-- Do NOT add extra explanation — only give the code.
+- It should be in the namespace GemsAi.Core.Tasks.
+- Do NOT add any extra explanation — only output valid C# code.
 
 User request:
-\""{input}\""
-";
+""""""{input}""""""";
 
-            var generatedCode = await _ai.GenerateAsync(prompt);
+            string prompt = basePrompt;
+            string generatedCode = "";
+            const int maxIterations = 3;
+            int iteration = 0;
 
-            // Try to extract class name
+            while (iteration < maxIterations)
+            {
+                // Generate code with the current prompt, using model routing for code generation.
+                var availableModels = await _ai.GetAllModelsAsync();
+                var router = new ModelRouter(availableModels);
+                var bestModel = router.PickBestModel("code generation");
+                generatedCode = await _ai.GenerateAsync(prompt, bestModel);
+
+                Console.WriteLine("Generated Code:");
+                Console.WriteLine("-----------------------------------");
+                Console.WriteLine(generatedCode);
+                Console.WriteLine("-----------------------------------");
+                Console.Write("Is this code acceptable? (y to accept, n to refine): ");
+                var confirmation = Console.ReadLine();
+                if (confirmation?.Trim().ToLower() == "y")
+                {
+                    break;
+                }
+                else
+                {
+                    Console.Write("Please describe the errors or issues observed: ");
+                    var errorFeedback = Console.ReadLine() ?? "";
+                    // Append user feedback to the base prompt for refinement.
+                    prompt = basePrompt + "\n" +
+                             "The previously generated code had the following issues:\n" +
+                             errorFeedback + "\n" +
+                             "Please generate a revised version of the C# class that implements ITask and compiles without errors.";
+                    iteration++;
+                }
+            }
+
+            if (iteration == maxIterations && string.IsNullOrWhiteSpace(generatedCode))
+            {
+                return "Task creation aborted after multiple iterations.";
+            }
+
+            // Try to extract the class name
             var className = ExtractClassName(generatedCode);
             if (string.IsNullOrWhiteSpace(className))
                 return "I generated code but couldn't find a class name. Task not saved.";
 
             var filePath = Path.Combine(_taskFolder, $"{className}.cs");
             await File.WriteAllTextAsync(filePath, generatedCode);
+
+            // Record metadata for the generated task
+            var availableModelsFinal = await _ai.GetAllModelsAsync();
+            var routerFinal = new ModelRouter(availableModelsFinal);
+            var finalModel = routerFinal.PickBestModel("code generation");
+            await LearnedTaskMetadataManager.AddMetadataAsync($"{className}.cs", finalModel);
 
             return $"✅ I created and saved `{className}.cs`. Restart me to activate it!";
         }

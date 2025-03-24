@@ -4,9 +4,9 @@ namespace GemsAi.Core.Tasks
 {
     public class ModelListTask : ITask
     {
-        private readonly OllamaClient _client;
+        private readonly IAIClient _client;
 
-        public ModelListTask(OllamaClient client)
+        public ModelListTask(IAIClient client)
         {
             _client = client;
         }

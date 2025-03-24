@@ -6,7 +6,11 @@ namespace GemsAi.Core.AI
 {
     public class OllamaClient : IAIClient
     {
-        private readonly HttpClient _http;
+        public async Task<string> GenerateAsync(string prompt)
+        {
+            return await GenerateAsync(prompt, null);
+        }
+    private readonly HttpClient _http;
         private readonly string _model;
         public string Model => _model;
 
@@ -20,11 +24,13 @@ namespace GemsAi.Core.AI
                 ?? throw new Exception("No running models found in Ollama.");
         }
 
-        public async Task<string> GenerateAsync(string prompt)
+        public async Task<string> GenerateAsync(string prompt, string? modelOverride = null)
         {
+            var modelToUse = modelOverride ?? _model;
+            
             var response = await _http.PostAsJsonAsync("http://localhost:11434/api/generate", new
             {
-                model = _model,
+                model = modelToUse,
                 prompt = prompt,
                 stream = false
             });

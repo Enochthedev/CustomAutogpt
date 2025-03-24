@@ -1,35 +1,75 @@
-# --- 🔹 Build & Compiled Files ---
+# Build artifacts
 bin/
 obj/
 out/
 *.exe
 *.dll
 *.pdb
-*.log
-*.cache
 
-# --- 🔹 User-Specific & IDE Configs ---
-.vscode/
-.idea/
-*.suo
+# User-specific files
 *.user
+*.suo
 *.userosscache
 *.sln.docstates
-.DS_Store
-Thumbs.db
 
-# --- 🔹 Dependencies ---
-/packages/
-/node_modules/
-/dist/
+# VS Code / JetBrains / Rider
+.vscode/
+.idea/
 
-# --- 🔹 Environment & Config Secrets ---
-.env
-appsettings.json
-appsettings.Development.json
-appsettings.Production.json
-
-# --- 🔹 .NET & NuGet ---
-*.nupkg
+# DotNet CLI
 project.lock.json
-.nuget/
+project.fragment.lock.json
+
+# ASP.NET / Azure specific
+*.Publish.xml
+*.pubxml
+*.publishproj
+
+# Logs and Diagnostics
+*.log
+*.tlog
+*.tmp
+
+# Backup & temp files
+*.bak
+*.swp
+*~
+
+# ReSharper / Rider
+_ReSharper*/
+*.DotSettings.user
+
+# Build results
+TestResults/
+build/
+
+# Nuke build system
+.nuke/
+
+# Visual Studio Mac
+.vscode/
+.DS_Store
+
+# Generated tasks (optional — uncomment if you don’t want to track dynamically created tasks)
+# Core/LearnedTasks/*.cs
+
+# Ollama models (if mounted locally)
+ollama/
+
+# Embedded assets or ML models (if stored locally)
+*.onnx
+Assets/
+
+# Environment configs (if they contain secrets or local-specific config)
+.env
+appsettings.Local.json
+*.secret.json
+
+# Rider local history
+.idea/.idea.LocalHistory/
+
+# dotCover (JetBrains coverage)
+*.dotCover
+
+# ML.NET cache
+MLCache/

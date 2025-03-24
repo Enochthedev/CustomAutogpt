@@ -5,9 +5,9 @@ namespace GemsAi.Core.Tasks
 {
     public class StatusTask : ITask
     {
-        private readonly OllamaClient _client;
+        private readonly IAIClient _client;
 
-        public StatusTask(OllamaClient client)
+        public StatusTask(IAIClient client)
         {
             _client = client;
         }

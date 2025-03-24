@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace GemsAi.Core.Memory
 {
     public interface IMemoryStore
