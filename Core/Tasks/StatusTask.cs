@@ -1,13 +1,13 @@
 using GemsAi.Core.Tasks;
-using GemsAi.Core.AI;
+using GemsAi.Core.Ai;
 
 namespace GemsAi.Core.Tasks
 {
     public class StatusTask : ITask
     {
-        private readonly IAIClient _client;
+        private readonly IAiClient _client;
 
-        public StatusTask(IAIClient client)
+        public StatusTask(IAiClient client)
         {
             _client = client;
         }

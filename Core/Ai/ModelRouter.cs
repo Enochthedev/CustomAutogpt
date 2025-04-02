@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace GemsAi.Core.AI
+namespace GemsAi.Core.Ai
 {
     public class ModelRouter
     {

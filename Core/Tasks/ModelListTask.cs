@@ -1,12 +1,12 @@
-using GemsAi.Core.AI;
+using GemsAi.Core.Ai;
 
 namespace GemsAi.Core.Tasks
 {
     public class ModelListTask : ITask
     {
-        private readonly IAIClient _client;
+        private readonly IAiClient _client;
 
-        public ModelListTask(IAIClient client)
+        public ModelListTask(IAiClient client)
         {
             _client = client;
         }

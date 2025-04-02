@@ -1,0 +1,30 @@
+[
+    {
+      "Text": "onboard",
+      "Label": "Onboarding"
+    },
+    {
+      "Text": "hire",
+      "Label": "Onboarding"
+    },
+    {
+      "Text": "add employee",
+      "Label": "Onboarding"
+    },
+    {
+      "Text": "update employee",
+      "Label": "Onboarding"
+    },
+    {
+      "Text": "generate payroll",
+      "Label": "Payroll"
+    },
+    {
+      "Text": "update salary",
+      "Label": "Payroll"
+    },
+    {
+      "Text": "payroll report",
+      "Label": "Payroll"
+    }
+  ]

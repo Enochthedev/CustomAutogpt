@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace GemsAi.Core.AI
+namespace GemsAi.Core.Ai
 {
-    public interface IAIClient
+    public interface IAiClient
     {
 
         Task<string> GenerateAsync(string prompt);
@@ -11,8 +11,10 @@ namespace GemsAi.Core.AI
         // New overload to allow model overrides
         Task<string> GenerateAsync(string prompt, string? modelOverride);
 
-        // New method to fetch all available models
         Task<List<string>> GetAllModelsAsync();
         string Model { get; }
+
+        Task<string> DetectIntentAsync(string input);
+        Task<Dictionary<string, string>> ExtractEntitiesAsync(string input);
     }
 }

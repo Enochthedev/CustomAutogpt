@@ -1,10 +1,12 @@
+using System;
 using System.Net.Http;
+using System.Collections.Generic;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 
-namespace GemsAi.Core.AI
+namespace GemsAi.Core.Ai
 {
-    public class OllamaClient : IAIClient
+    public class OllamaClient : IAiClient
     {
         public async Task<string> GenerateAsync(string prompt)
         {
@@ -41,7 +43,27 @@ namespace GemsAi.Core.AI
             var json = await response.Content.ReadFromJsonAsync<OllamaResponse>();
             return json?.Response ?? "No response.";
         }
+        public async Task<string> DetectIntentAsync(string input)
+        {
+            string prompt = $"Detect the intent of the following text: \"{input}\"";
+            return await GenerateAsync(prompt, "smolLM2");
+        }
 
+        public async Task<Dictionary<string, string>> ExtractEntitiesAsync(string input)
+        {
+            string prompt = $"Extract key entities from the following text: \"{input}\"";
+            string response = await GenerateAsync(prompt, "gemma:2b");
+
+            var entities = new Dictionary<string, string>();
+            foreach (var pair in response.Split(","))
+            {
+                var parts = pair.Split(":");
+                if (parts.Length == 2)
+                    entities[parts[0].Trim()] = parts[1].Trim();
+            }
+
+            return entities;
+        }
         public async Task<List<string>> GetAllModelsAsync()
         {
             var response = await _http.GetAsync("http://localhost:11434/api/tags");

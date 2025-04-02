@@ -1,4 +1,4 @@
-# Gems AI Agent
+# Gems Ai Agent
 
 Gems AI Agent is a modular, self-improving AI system built in .NET. It uses a combination of dynamic task generation, model routing, and vector-based memory to create an agent that can evolve over time. The system is designed to be easily extended via dependency injection (DI) and configuration.
 

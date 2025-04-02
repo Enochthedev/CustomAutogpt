@@ -1,4 +1,4 @@
-using GemsAi.Core.AI;
+using GemsAi.Core.Ai;
 using GemsAi.Core.LearnedTasks;
 using GemsAi.Core.Tasks;
 
@@ -6,10 +6,10 @@ namespace GemsAi.Core.Tasks
 {
     public class CreateTaskCommand : ITask
     {
-        private readonly IAIClient _ai;
+        private readonly IAiClient _ai;
         private readonly string _taskFolder = "Core/LearnedTasks";
 
-        public CreateTaskCommand(IAIClient ai)
+        public CreateTaskCommand(IAiClient ai)
         {
             _ai = ai;
             if (!Directory.Exists(_taskFolder))
@@ -22,7 +22,7 @@ namespace GemsAi.Core.Tasks
         public async Task<string> ExecuteAsync(string input)
         {
             var basePrompt = $@"
-You are an AI system helping build modular tasks for a .NET AI agent.
+You are an Ai system helping build modular tasks for a .NET Ai agent.
 Given the user's request below, generate a C# class that implements the ITask interface.
 - The class should have clear implementations for CanHandle() and ExecuteAsync().
 - It must be self-contained and compile-ready.

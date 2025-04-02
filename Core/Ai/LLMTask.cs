@@ -1,12 +1,12 @@
 using GemsAi.Core.Tasks;
 
-namespace GemsAi.Core.AI
+namespace GemsAi.Core.Ai
 {
     public class LLMTask : ITask
     {
-        private readonly IAIClient _ai;
+        private readonly IAiClient _ai;
 
-        public LLMTask(IAIClient ai)
+        public LLMTask(IAiClient ai)
         {
             _ai = ai;
         }

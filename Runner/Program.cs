@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using GemsAi.Core.Agent;
 using GemsAi.Core.Memory;
-using GemsAi.Core.AI;
+using GemsAi.Core.Ai;
 using GemsAi.Core.Tasks;
 using GemsAi.Core.LearnedTasks;
 // assuming your embedders are in this namespace
@@ -26,7 +26,7 @@ services.AddSingleton<IMemoryStore, InMemoryMemoryStore>();
 // Register the AI client using Ollama
 // Optionally, you might read the default model from configuration:
 var defaultModel = configuration["AI:DefaultModel"] ?? "smollm2:1.7b";
-services.AddSingleton<IAIClient>(sp => new OllamaClient(
+services.AddSingleton<IAiClient>(sp => new OllamaClient(
     sp.GetRequiredService<HttpClient>(), defaultModel));
 
 // Register the embedder based on configuration

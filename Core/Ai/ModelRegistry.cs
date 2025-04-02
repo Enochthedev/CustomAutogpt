@@ -1,4 +1,4 @@
-namespace GemsAi.Core.AI
+namespace GemsAi.Core.Ai
 {
     public static class ModelRegistry
     {
