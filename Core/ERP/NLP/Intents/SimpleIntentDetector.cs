@@ -13,7 +13,9 @@ namespace GemsAi.Core.ERP.NLP.Intents
             { "update employee", "Onboarding" },
             { "generate payroll", "Payroll" },
             { "update salary", "Payroll" },
-            { "payroll report", "Payroll" }
+            { "payroll report", "Payroll" },
+            { "create report", "Reporting" },
+            { "export data", "Reporting" }
         };
 
         public string Detect(string input)
