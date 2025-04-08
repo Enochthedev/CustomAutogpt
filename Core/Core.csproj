@@ -12,5 +12,9 @@
     <PackageReference Include="Microsoft.ML" Version="4.0.2" />
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="4.0.2" />
   </ItemGroup>
-
+  <ItemGroup>
+    <None Update="NLP/IntentDetection/IntentPatterns.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+</ItemGroup>
 </Project>

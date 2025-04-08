@@ -1,0 +1,80 @@
+├── Core
+│   ├── Agent
+│   │   ├── ChronoAgent.cs
+│   │   └── IAgent.cs
+│   ├── Ai
+│   │   ├── IAIClient.cs
+│   │   ├── LLMTask.cs
+│   │   ├── ModelRegistry.cs
+│   │   ├── ModelRouter.cs
+│   │   ├── ModelSelector.cs
+│   │   └── OllamaClient.cs
+│   ├── Class1.cs
+│   ├── Config
+│   ├── Core.csproj
+│   ├── ERP
+│   │   ├── Interfaces
+│   │   │   └── IModuleHandler.cs
+│   │   ├── Models
+│   │   │   └── ModuleData.cs
+│   │   ├── ModuleConfig.json
+│   │   ├── ModuleRegistry.cs
+│   │   ├── Modules
+│   │   │   ├── Onboarding
+│   │   │   │   └── OnboardingHandler.cs
+│   │   │   └── Payroll
+│   │   ├── NLP
+│   │   │   ├── Departments.json
+│   │   │   ├── Entities
+│   │   │   │   ├── EntityData.cs
+│   │   │   │   ├── EntityDefinitions.cs
+│   │   │   │   ├── EntityExtractor.cs
+│   │   │   │   ├── EntityPatterns.json
+│   │   │   │   └── SimpleEntityExtractor.cs
+│   │   │   ├── Intents
+│   │   │   │   ├── IntentData.cs
+│   │   │   │   ├── IntentData.json
+│   │   │   │   ├── IntentDetector.cs
+│   │   │   │   ├── IntentTrainer.cs
+│   │   │   │   └── SimpleIntentDetector.cs
+│   │   │   ├── NlpProcessor.cs
+│   │   │   └── SimpleNlpProcessor.cs
+│   │   └── Validators
+│   ├── LearnedTasks
+│   │   ├── LearnedTaskManager.cs
+│   │   ├── LearnedTaskMetadataManager.cs
+│   │   └── metadata.json
+│   ├── Memory
+│   │   ├── Embedders
+│   │   │   ├── MLNetEmbedder.cs
+│   │   │   ├── OllamaEmbedder.cs
+│   │   │   └── TextEmbedder.cs
+│   │   ├── IEmbedder.cs
+│   │   ├── IMemoryStore.cs
+│   │   ├── IVectorMemoryStore.cs
+│   │   ├── InMemoryMemoryStore.cs
+│   │   ├── InVectorMemoryStore.cs
+│   │   └── VectorStore
+│   └── Tasks
+│       ├── CreateTaskCommand.cs
+│       ├── EchoTask.cs
+│       ├── ITask.cs
+│       ├── ModelListTask.cs
+│       ├── StatusTask.cs
+│       └── TaskMetadataQueryTask.cs
+├── Devdoc.md
+├── GemsAi.sln
+├── Readme.md
+├── Runner
+│   ├── Program.cs
+│   └── Runner.csproj
+├── TestRunner
+│   ├── Program.cs
+│   └── TestRunner.csproj
+├── appsettings.Local.json
+├── appsettings.json
+├── deliverables.md
+├── project_structure.txt
+└── test.md
+
+24 directories, 57 files

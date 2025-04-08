@@ -1,0 +1,5 @@
+{
+    "onboarding": ["onboard", "add to HR", "bring into team"],
+    "payroll": ["add to payroll", "salary update", "payroll registration"],
+    "termination": ["remove from system", "terminate employee", "end contract"]
+}

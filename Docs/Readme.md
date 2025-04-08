@@ -138,7 +138,7 @@ Execute:
 dotnet run --project Runner
 ```
 
- 3. Interact with the Agent:
+ 1. Interact with the Agent:
 The agent will prompt:
 
 ```bash
