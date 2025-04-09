@@ -63,7 +63,7 @@ namespace GemsAi.Core.Ai
 
             Input:
             """ + input;
-            string response = await GenerateAsync(prompt, "gemma:2b");
+            string response = await GenerateAsync(prompt, "smolLM2");
 
             var entities = new Dictionary<string, string>();
 
