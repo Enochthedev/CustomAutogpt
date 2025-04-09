@@ -1,0 +1,12 @@
+{
+  "RequiredFields": ["name", "department", "start_date"],
+  "ExampleFormat": {
+    "name": "John Doe",
+    "department": "HR",
+    "start_date": "2025-04-09"
+  },
+  "AvailableEndpoints": [
+    "/api/onboarding/start",
+    "/api/onboarding/verify"
+  ]
+}

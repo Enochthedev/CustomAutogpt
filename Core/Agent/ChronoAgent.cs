@@ -1,5 +1,6 @@
 using GemsAi.Core.Tasks;
 using GemsAi.Core.Memory;
+using GemsAi.Core.TaskManagement.TaskCommands;
 
 namespace GemsAi.Core.Agent
 {

@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Collections.Generic;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace GemsAi.Core.Ai
 {
@@ -51,15 +52,38 @@ namespace GemsAi.Core.Ai
 
         public async Task<Dictionary<string, string>> ExtractEntitiesAsync(string input)
         {
-            string prompt = $"Extract key entities from the following text: \"{input}\"";
+            string prompt = """
+            You are an intelligent assistant. From the input below, extract:
+            - intent (e.g. onboarding, payroll, termination)
+            - name of the person
+            - department they are associated with
+
+            Return only a compact JSON object like:
+            { "intent": "onboarding", "name": "John Doe", "department": "HR" }
+
+            Input:
+            """ + input;
             string response = await GenerateAsync(prompt, "gemma:2b");
 
             var entities = new Dictionary<string, string>();
-            foreach (var pair in response.Split(","))
+
+            try
             {
-                var parts = pair.Split(":");
-                if (parts.Length == 2)
-                    entities[parts[0].Trim()] = parts[1].Trim();
+                var jsonData = JsonDocument.Parse(response);
+                foreach (var prop in jsonData.RootElement.EnumerateObject())
+                {
+                    entities[prop.Name] = prop.Value.GetString() ?? "";
+                }
+            }
+            catch
+            {
+                Console.WriteLine("⚠️ Failed to parse AI response as JSON. Falling back to rough split.");
+                foreach (var pair in response.Split(","))
+                {
+                    var parts = pair.Split(":");
+                    if (parts.Length == 2)
+                        entities[parts[0].Trim()] = parts[1].Trim();
+                }
             }
 
             return entities;

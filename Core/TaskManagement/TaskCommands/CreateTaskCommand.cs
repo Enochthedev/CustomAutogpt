@@ -1,6 +1,7 @@
 using GemsAi.Core.Ai;
 using GemsAi.Core.LearnedTasks;
 using GemsAi.Core.Tasks;
+using GemsAi.Core.TaskManagement.TaskCommands;
 
 namespace GemsAi.Core.Tasks
 {

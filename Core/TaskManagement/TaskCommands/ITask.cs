@@ -1,4 +1,4 @@
-namespace GemsAi.Core.Tasks
+namespace GemsAi.Core.TaskManagement.TaskCommands
 {
     public interface ITask
     {

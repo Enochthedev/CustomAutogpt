@@ -3,7 +3,7 @@ using System.Runtime.Loader;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using GemsAi.Core.Tasks;
-
+using GemsAi.Core.TaskManagement.TaskCommands;
 namespace GemsAi.Core.LearnedTasks
 {
     public static class LearnedTaskManager

@@ -5,72 +5,69 @@ using GemsAi.Core.Agent;
 using GemsAi.Core.Memory;
 using GemsAi.Core.Ai;
 using GemsAi.Core.Tasks;
+using GemsAi.Core.TaskManagement.TaskCommands;
 using GemsAi.Core.LearnedTasks;
-// assuming your embedders are in this namespace
+using GemsAi.Core.TaskManagement.TaskCommands.Utils; // For ErpModuleSchema if needed
 
-// Build configuration from appsettings.json
+
+// Build configuration
 var configuration = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
     .Build();
 
 var services = new ServiceCollection();
-
-// Register configuration so it can be injected later if needed
 services.AddSingleton<IConfiguration>(configuration);
-
-// Register shared services
 services.AddSingleton<HttpClient>();
 services.AddSingleton<IMemoryStore, InMemoryMemoryStore>();
 
-// Register the AI client using Ollama
-// Optionally, you might read the default model from configuration:
-var defaultModel = configuration["AI:DefaultModel"] ?? "smollm2:1.7b";
-services.AddSingleton<IAiClient>(sp => new OllamaClient(
-    sp.GetRequiredService<HttpClient>(), defaultModel));
+// Register AI client
+var defaultModel = configuration["AI:DefaultModel"] ?? "smolLM2:1.7b";
+services.AddSingleton<IAiClient>(sp => new OllamaClient(sp.GetRequiredService<HttpClient>(), defaultModel));
 
-// Register the embedder based on configuration
+// Embedder
 bool useOllamaEmbedder = bool.TryParse(configuration["Embedding:UseOllama"], out var useOllama) && useOllama;
 if (useOllamaEmbedder)
 {
-    // Use the Ollama embedder and get endpoint from config
-    // Example: Reading endpoint from configuration or using a default.
-    string ollamaEndpoint = configuration["Embedding:OllamaEndpoint"] ?? "http://localhost:11434";
-    services.AddSingleton<IEmbedder>(sp => new OllamaEmbedder(
-        sp.GetRequiredService<HttpClient>(), ollamaEndpoint));
+    string endpoint = configuration["Embedding:OllamaEndpoint"] ?? "http://localhost:11434";
+    services.AddSingleton<IEmbedder>(sp => new OllamaEmbedder(sp.GetRequiredService<HttpClient>(), endpoint));
 }
 else
 {
-    // Use ML.NET embedder with the provided ONNX model path
-    string onnxPath = configuration["Embedding:ONNXModelPath"] ?? "path/to/your/model.onnx";
-    services.AddSingleton<IEmbedder>(sp => new MLNetEmbedder(onnxPath));
+    string modelPath = configuration["Embedding:ONNXModelPath"] ?? "path/to/model.onnx";
+    services.AddSingleton<IEmbedder>(sp => new MLNetEmbedder(modelPath));
 }
-
-// Register the vector memory store
 services.AddSingleton<IVectorMemoryStore, InMemoryVectorMemoryStore>();
 
-// Use Scrutor to scan for all ITask implementations in the assembly
+// Register ITask implementations EXCEPT ErpTask (handled manually)
 services.Scan(scan => scan
-    .FromAssemblyOf<ITask>() // scans the assembly where ITask is defined
-    .AddClasses(classes => classes.AssignableTo<ITask>())
+    .FromAssemblyOf<ITask>()
+    .AddClasses(c => c.AssignableTo<ITask>().Where(t => t != typeof(ErpTask)))
     .AsImplementedInterfaces()
-    .WithSingletonLifetime()
-);
+    .WithSingletonLifetime());
 
-// Register the agent
+// Dynamically register ERP module tasks
+var erpModulesDir = Path.Combine("Core", "NLP", "EntityExtraction", "ErpModules");
+if (Directory.Exists(erpModulesDir))
+{
+    foreach (var file in Directory.GetFiles(erpModulesDir, "*.json"))
+    {
+        var moduleName = Path.GetFileNameWithoutExtension(file);
+        services.AddSingleton<ITask>(sp => new ErpTask(sp.GetRequiredService<IAiClient>(), moduleName));
+    }
+}
+else
+{
+    Console.WriteLine($"⚠️ ERP module folder not found: {erpModulesDir}");
+}
+
 services.AddSingleton<IAgent, GemsAgent>();
 
-// Build the service provider
-var serviceProvider = services.BuildServiceProvider();
-
-// Get all tasks (including dynamically registered ones)
-var tasks = serviceProvider.GetServices<ITask>().ToList();
-
-// Additionally, load learned tasks and add them if you want:
+var provider = services.BuildServiceProvider();
+var tasks = provider.GetServices<ITask>().ToList();
 tasks.AddRange(LearnedTaskManager.LoadLearnedTasks());
 
-// Manually create the agent with the DI tasks and memory store
-var memory = serviceProvider.GetRequiredService<IMemoryStore>();
+var memory = provider.GetRequiredService<IMemoryStore>();
 var agent = new GemsAgent(tasks, memory);
 
 Console.WriteLine("🤖 Gems AI Agent Ready!");
@@ -80,8 +77,7 @@ while (true)
 {
     Console.Write("> ");
     var input = Console.ReadLine();
-    if (string.IsNullOrWhiteSpace(input))
-        continue;
+    if (string.IsNullOrWhiteSpace(input)) continue;
 
     try
     {

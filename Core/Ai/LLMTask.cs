@@ -1,4 +1,5 @@
 using GemsAi.Core.Tasks;
+using GemsAi.Core.TaskManagement.TaskCommands;
 
 namespace GemsAi.Core.Ai
 {
