@@ -73,3 +73,28 @@ appsettings.Local.json
 
 # ML.NET cache
 MLCache/
+
+# === Python & FastAPI ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+*.sqlite3
+.cache/
+.DS_Store
+
+# Model and training artifacts
+FastApi/model/**/pytorch_model.bin
+FastApi/model/**/model.safetensors
+FastApi/model/**/checkpoint*
+FastApi/tmp-intent/
+FastApi/training_output/
+FastApi/__pycache__/
+FastApi/logs/
+FastApi/.pytest_cache/
+FastApi/.ipynb_checkpoints/
+FastApi/venv/
+FastApi/.env
+
+# Hugging Face cache (optional)
+~/.cache/huggingface/
