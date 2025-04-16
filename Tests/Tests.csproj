@@ -29,9 +29,21 @@
     </None>
 </ItemGroup>
 <ItemGroup>
-    <None Update="../Core/NLP/IntentDetection/IntentPatterns.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+  <None Include="..\Assets\Models\POS\bert-pos.onnx">
+    <Link>Assets\Models\POS\bert-pos.onnx</Link>
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+  <None Include="..\Assets\Models\POS\vocab.txt">
+    <Link>Assets\Models\POS\vocab.txt</Link>
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
 </ItemGroup>
-
+<ItemGroup>
+  <None Update="Assets/NLP/IntentPatterns.json">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+  <None Update="Assets/NLP/EntitySchema.json">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
 </Project>

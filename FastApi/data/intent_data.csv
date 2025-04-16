@@ -1,0 +1,76 @@
+text                                             , label
+Please onboard Sarah Johnson to the HR department, onboard_employee
+Add Michael to the marketing team                , onboard_employee
+Put James in the HR department                   , onboard_employee
+Can you onboard David to Legal?                  , onboard_employee
+Assign Anita to the engineering department       , onboard_employee
+Place Tolu in the finance team                   , onboard_employee
+Onboard Grace into the IT department             , onboard_employee
+Move Uche into HR                                , onboard_employee
+Add Jane Smith to the Communications unit        , onboard_employee
+Please assign Emmanuel to Customer Support       , onboard_employee
+Remove John Doe from the Finance department      , remove_employee
+Can you remove Alice from the HR team?           , remove_employee
+Take Daniel off the engineering team             , remove_employee
+Please remove David from the sales department    , remove_employee
+Kindly delete Anna from the marketing team       , remove_employee
+Add a new role for marketing specialist          , add_job_role
+Create a new job for product designer            , add_job_role
+We need to add a backend developer role          , add_job_role
+Add role: technical writer                       , add_job_role
+Include a job opening for frontend developer     , add_job_role
+What's the status of payroll for March?          , check_payroll
+Check the payroll report for February            , check_payroll
+Is payroll complete for April?                   , check_payroll
+Show me this month's payroll                     , check_payroll
+Verify payroll records for May                   , check_payroll
+Generate a report for Q1 employee attendance     , generate_report
+Create a summary of sales for last quarter       , generate_report
+Can you produce a report for team performance?   , generate_report
+Export a report on office logins                 , generate_report
+Generate the weekly productivity report          , generate_report
+Move Emma to the Product team                    , change_department
+Switch Peter to the HR department                , change_department
+Transfer Michael to Engineering                  , change_department
+Put David into Finance                           , change_department
+Please shift Grace to the IT team                , change_department
+Schedule a meeting with the HR manager           , schedule_meeting
+Book a meeting for payroll review                , schedule_meeting
+Set up a call with the finance department        , schedule_meeting
+Arrange a discussion with the CEO                , schedule_meeting
+Plan a meeting with engineering                  , schedule_meeting
+List all employees in the Engineering department , list_employees
+Show staff in Product                            , list_employees
+Who works in Legal?                              , list_employees
+List the team in Sales                           , list_employees
+Give me names in the marketing unit              , list_employees
+Can you check if David is on leave today?        , check_leave
+Is Emma on vacation?                             , check_leave
+Find out if Uche is on leave                     , check_leave
+Check Grace's leave status                       , check_leave
+Is Jane off work today?                          , check_leave
+Create a new project named 'Phoenix'             , create_project
+Start a project called Titan                     , create_project
+Begin a new initiative: Moonlight                , create_project
+Kick off the Alpha project                       , create_project
+Initiate the Beta build                          , create_project
+Update the salary details for Jane Smith         , update_salary
+Change Michael’s pay to 120000                   , update_salary
+Edit salary of Grace                             , update_salary
+Increase David's salary                          , update_salary
+Revise payroll info for Peter                    , update_salary
+Who is the team lead for the Sales department?   , get_team_lead
+Get the manager for HR                           , get_team_lead
+Who leads the Finance team?                      , get_team_lead
+Find out the head of Legal                       , get_team_lead
+Team lead of marketing?                          , get_team_lead
+Mark Samuel as present for today                 , mark_attendance
+Check in Grace                                   , mark_attendance
+Log presence for Daniel                          , mark_attendance
+Confirm attendance for Emma                      , mark_attendance
+Mark Tolu as present                             , mark_attendance
+Assign Charles to the new project Alpha          , assign_project
+Put Jane on the Beta project                     , assign_project
+Assign Michael to Phoenix                        , assign_project
+Add David to the Moonlight project               , assign_project
+Put Uche on team Titan                           , assign_project
