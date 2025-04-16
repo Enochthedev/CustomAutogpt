@@ -23,51 +23,51 @@ namespace GemsAi.Core.Tasks
         public async Task<string> ExecuteAsync(string input)
         {
             var basePrompt = $@"
-You are an Ai system helping build modular tasks for a .NET Ai agent.
-Given the user's request below, generate a C# class that implements the ITask interface.
-- The class should have clear implementations for CanHandle() and ExecuteAsync().
-- It must be self-contained and compile-ready.
-- It should be in the namespace GemsAi.Core.Tasks.
-- Do NOT add any extra explanation — only output valid C# code.
+            You are an Ai system helping build modular tasks for a .NET Ai agent.
+            Given the user's request below, generate a C# class that implements the ITask interface.
+            - The class should have clear implementations for CanHandle() and ExecuteAsync().
+            - It must be self-contained and compile-ready.
+            - It should be in the namespace GemsAi.Core.Tasks.
+            - Do NOT add any extra explanation — only output valid C# code.
 
-User request:
-""""""{input}""""""";
+            User request:
+            """"""{input}""""""";
 
-            string prompt = basePrompt;
-            string generatedCode = "";
-            const int maxIterations = 3;
-            int iteration = 0;
+                string prompt = basePrompt;
+                string generatedCode = "";
+                const int maxIterations = 3;
+                int iteration = 0;
 
-            while (iteration < maxIterations)
-            {
-                // Generate code with the current prompt, using model routing for code generation.
-                var availableModels = await _ai.GetAllModelsAsync();
-                var router = new ModelRouter(availableModels);
-                var bestModel = router.PickBestModel("code generation");
-                generatedCode = await _ai.GenerateAsync(prompt, bestModel);
-
-                Console.WriteLine("Generated Code:");
-                Console.WriteLine("-----------------------------------");
-                Console.WriteLine(generatedCode);
-                Console.WriteLine("-----------------------------------");
-                Console.Write("Is this code acceptable? (y to accept, n to refine): ");
-                var confirmation = Console.ReadLine();
-                if (confirmation?.Trim().ToLower() == "y")
+                while (iteration < maxIterations)
                 {
-                    break;
+                    // Generate code with the current prompt, using model routing for code generation.
+                    var availableModels = await _ai.GetAllModelsAsync();
+                    var router = new ModelRouter(availableModels);
+                    var bestModel = router.PickBestModel("code generation");
+                    generatedCode = await _ai.GenerateAsync(prompt);
+
+                    Console.WriteLine("Generated Code:");
+                    Console.WriteLine("-----------------------------------");
+                    Console.WriteLine(generatedCode);
+                    Console.WriteLine("-----------------------------------");
+                    Console.Write("Is this code acceptable? (y to accept, n to refine): ");
+                    var confirmation = Console.ReadLine();
+                    if (confirmation?.Trim().ToLower() == "y")
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        Console.Write("Please describe the errors or issues observed: ");
+                        var errorFeedback = Console.ReadLine() ?? "";
+                        // Append user feedback to the base prompt for refinement.
+                        prompt = basePrompt + "\n" +
+                                "The previously generated code had the following issues:\n" +
+                                errorFeedback + "\n" +
+                                "Please generate a revised version of the C# class that implements ITask and compiles without errors.";
+                        iteration++;
+                    }
                 }
-                else
-                {
-                    Console.Write("Please describe the errors or issues observed: ");
-                    var errorFeedback = Console.ReadLine() ?? "";
-                    // Append user feedback to the base prompt for refinement.
-                    prompt = basePrompt + "\n" +
-                             "The previously generated code had the following issues:\n" +
-                             errorFeedback + "\n" +
-                             "Please generate a revised version of the C# class that implements ITask and compiles without errors.";
-                    iteration++;
-                }
-            }
 
             if (iteration == maxIterations && string.IsNullOrWhiteSpace(generatedCode))
             {

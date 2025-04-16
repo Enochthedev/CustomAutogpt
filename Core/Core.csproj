@@ -17,4 +17,12 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 </ItemGroup>
+<ItemGroup>
+  <None Update="Assets/Models/POS/bert-pos.onnx">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+  <None Update="Assets/Models/POS/vocab.txt">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
 </Project>

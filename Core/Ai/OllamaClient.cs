@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json;
-
+using GemsAi.Core.TaskManagement.TaskCommands.Utils;
 namespace GemsAi.Core.Ai
 {
     public class OllamaClient : IAiClient
@@ -50,44 +50,6 @@ namespace GemsAi.Core.Ai
             return await GenerateAsync(prompt, "smolLM2");
         }
 
-        public async Task<Dictionary<string, string>> ExtractEntitiesAsync(string input)
-        {
-            string prompt = """
-            You are an intelligent assistant. From the input below, extract:
-            - intent (e.g. onboarding, payroll, termination)
-            - name of the person
-            - department they are associated with
-
-            Return only a compact JSON object like:
-            { "intent": "onboarding", "name": "John Doe", "department": "HR" }
-
-            Input:
-            """ + input;
-            string response = await GenerateAsync(prompt, "smolLM2");
-
-            var entities = new Dictionary<string, string>();
-
-            try
-            {
-                var jsonData = JsonDocument.Parse(response);
-                foreach (var prop in jsonData.RootElement.EnumerateObject())
-                {
-                    entities[prop.Name] = prop.Value.GetString() ?? "";
-                }
-            }
-            catch
-            {
-                Console.WriteLine("⚠️ Failed to parse AI response as JSON. Falling back to rough split.");
-                foreach (var pair in response.Split(","))
-                {
-                    var parts = pair.Split(":");
-                    if (parts.Length == 2)
-                        entities[parts[0].Trim()] = parts[1].Trim();
-                }
-            }
-
-            return entities;
-        }
         public async Task<List<string>> GetAllModelsAsync()
         {
             var response = await _http.GetAsync("http://localhost:11434/api/tags");
@@ -95,6 +57,53 @@ namespace GemsAi.Core.Ai
 
             var data = await response.Content.ReadFromJsonAsync<ModelsResponse>();
             return data?.Models?.Select(m => m.Name).ToList() ?? new List<string>();
+        }
+
+        public async Task<Dictionary<string, string>> ExtractEntitiesAsync(string input, ErpModuleSchema schema)
+        {
+            string required = string.Join(", ", schema.RequiredFields);
+            string jsonExample = JsonSerializer.Serialize(schema.ExampleFormat);
+
+            string prompt = $"""
+            You are a smart ERP NLP engine. Given the following sentence:
+
+            "{input}"
+
+            Extract and return the following fields: {required}
+
+            Respond only with JSON in this format:
+            {jsonExample}
+            """;
+
+            string response = await GenerateAsync(prompt, "gemma:2b");
+
+            try
+            {
+                using var doc = JsonDocument.Parse(response);
+                var result = new Dictionary<string, string>();
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                    result[prop.Name] = prop.Value.GetString() ?? "";
+                return result;
+            }
+            catch
+            {
+                return new Dictionary<string, string> { { "intent", "unknown" } };
+            }
+        }
+        public async Task<Dictionary<string, string>> ExtractEntitiesAsync(string input)
+        {
+            // Default fallback schema (can be improved)
+            var defaultSchema = new ErpModuleSchema
+            {
+                RequiredFields = new List<string> { "intent", "name", "department" },
+                ExampleFormat = new Dictionary<string, string>
+                {
+                    { "intent", "onboarding" },
+                    { "name", "John Doe" },
+                    { "department", "HR" }
+                }
+            };
+            return await ExtractEntitiesAsync(input, defaultSchema);
         }
 
         private async Task<string?> GetAvailableModelsAsync()

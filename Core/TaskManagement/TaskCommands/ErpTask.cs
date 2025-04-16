@@ -28,20 +28,17 @@ namespace GemsAi.Core.TaskManagement.TaskCommands
             if (schema == null)
                 return "❌ Failed to load schema.";
 
-            var extractionPrompt = BuildPromptFromSchema(input, schema);
-            var response = await _client.GenerateAsync(extractionPrompt, "gemma:2b" );
-
             Dictionary<string, string> parsed;
             try
             {
-                parsed = JsonSerializer.Deserialize<Dictionary<string, string>>(response) ?? new();
+                parsed = await _client.ExtractEntitiesAsync(input, schema);
             }
-            catch
+            catch (Exception ex)
             {
-                return $"❌ Could not parse AI response into expected format. Raw response:\n{response}";
+                return $"❌ Failed to extract entities: {ex.Message}";
             }
 
-            var missing = schema.RequiredFields.Where(field => !parsed.ContainsKey(field)).ToList();
+            var missing = schema.RequiredFields.Where(field => !parsed.ContainsKey(field) || string.IsNullOrWhiteSpace(parsed[field])).ToList();
             if (missing.Any())
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -54,32 +51,6 @@ namespace GemsAi.Core.TaskManagement.TaskCommands
             }
 
             return $"✅ Extracted Data for {_moduleName}:\n{JsonSerializer.Serialize(parsed, new JsonSerializerOptions { WriteIndented = true })}";
-        }
-
-        private string BuildPromptFromSchema(string input, ErpModuleSchema schema)
-        {
-            string required = string.Join(", ", schema.RequiredFields);
-            string jsonExample = JsonSerializer.Serialize(schema.ExampleFormat, new JsonSerializerOptions
-            {
-                WriteIndented = false
-            });
-
-            return $"""
-            You are an API-connected AI agent.
-
-            Given this user input:
-            "{input}"
-
-            Extract only the required fields for the ERP module `{_moduleName}`: {required}
-
-            Respond **only** with compact JSON in the format:
-            {jsonExample}
-
-            Do not include explanations, preambles, or assistant language.
-            Empty values are allowed but the keys must all be present.
-
-            Respond with JSON only.
-            """;
         }
 
         private Dictionary<string, string> PromptForMissingFields(List<string> missingFields)

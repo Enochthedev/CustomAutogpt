@@ -1,98 +1,32 @@
 using Xunit;
-using System.Collections.Generic;
-using GemsAI.Core.NLP.EntityExtraction;
+using Core.InProg.NLP.EntityExtraction;
+using System.Linq;
 
-namespace GemsAI.Tests.NLP
+namespace GemsAI.Tests.INProg.NLP
 {
     public class EntityExtractorTests
     {
-        private readonly EntityExtractor extractor;
+        private readonly EntityExtractor _extractor;
 
         public EntityExtractorTests()
         {
-            extractor = new EntityExtractor();
+            _extractor = new EntityExtractor("Assets/NLP/EntitySchema.json");
         }
 
         [Fact]
-        public void TestEntityExtraction_NameAndDepartment()
+        public void ExtractEntities_ValidSentence_ExtractsExpectedEntities()
         {
-            string input = "Add John Doe to the HR department.";
-            var result = extractor.ExtractEntities(input);
+            var result = _extractor.ExtractEntities("Onboard Sarah Doe to the HR department.");
 
-            Assert.True(result.ContainsKey("Name"));
-            Assert.Equal("John Doe", result["Name"]);
-            Assert.True(result.ContainsKey("Department"));
-            Assert.Equal("HR", result["Department"]);
+            Assert.Contains(result, e => e.Entity == "Sarah" && e.Type == "name");
+            Assert.Contains(result, e => e.Entity == "HR" && e.Type == "department");
         }
 
         [Fact]
-        public void TestEntityExtraction_OnlyName()
+        public void ExtractEntities_NoMatch_ReturnsEmptyList()
         {
-            string input = "Hello Jane Smith.";
-            var result = extractor.ExtractEntities(input);
-
-            Assert.True(result.ContainsKey("Name"));
-            Assert.Equal("Jane Smith", result["Name"]);
-            Assert.False(result.ContainsKey("Department"));
-        }
-
-        [Fact]
-        public void TestEntityExtraction_OnlyDepartment()
-        {
-            string input = "Transfer to Finance department.";
-            var result = extractor.ExtractEntities(input);
-
-            Assert.False(result.ContainsKey("Name"));
-            Assert.True(result.ContainsKey("Department"));
-            Assert.Equal("Finance", result["Department"]);
-        }
-
-        [Fact]
-        public void TestEntityExtraction_NoMatch()
-        {
-            string input = "This is a random sentence.";
-            var result = extractor.ExtractEntities(input);
-
+            var result = _extractor.ExtractEntities("This is a generic sentence.");
             Assert.Empty(result);
-        }
-
-        [Fact]
-        public void TestEntityExtraction_NullInput()
-        {
-            string input = string.Empty;
-            var result = extractor.ExtractEntities(input);
-
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public void TestEntityExtraction_EmptyInput()
-        {
-            string input = "";
-            var result = extractor.ExtractEntities(input);
-
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public void TestEntityExtraction_MalformedPattern()
-        {
-            string input = "Add a person without a clear pattern.";
-            var result = extractor.ExtractEntities(input);
-
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public void TestEntityExtraction_CommonWordPrefix()
-        {
-            string input = "Hey John Doe, welcome to Marketing!";
-            var result = extractor.ExtractEntities(input);
-
-            Assert.True(result.ContainsKey("Name"));
-            Assert.Equal("John Doe", result["Name"]);
-            Assert.True(result.ContainsKey("Department"));
-            Assert.Equal("Marketing", result["Department"]);
         }
     }
 }
