@@ -7,5 +7,6 @@ namespace GemsAi.Core.Services
     {
         Task<CreateEmployeeResponse> CreateEmployeeAsync(CreateEmployeeDto dto);
         // Add more methods for other ERP operations as you scale!
+        Task<ErpResult> UpdateEmployeeAsync(UpdateEmployeeDto dto);
     }
 }

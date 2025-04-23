@@ -1,8 +1,11 @@
 {
-  "RequiredFields": ["name", "department", "date"],
+  "RequiredFields": ["name", "department", "date", "email"],
   "ExampleFormat": {
-    "name": "John Doe",
-    "department": "Marketing",
-    "date": "2024-04-20"
+    "name": "",
+    "department": "",
+    "date": "",
+    "email": "",
+    "phone": "",
+    "job_title": ""
   }
 }

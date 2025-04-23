@@ -15,5 +15,14 @@ namespace GemsAi.Core.Services
                 ErrorMessage = null
             });
         }
+
+        public Task<ErpResult> UpdateEmployeeAsync(UpdateEmployeeDto dto)
+        {
+            return Task.FromResult(new ErpResult
+            {
+                IsSuccess = true,
+                ErrorMessage = null
+            });
+        }
     }
 }

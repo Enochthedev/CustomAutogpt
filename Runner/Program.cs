@@ -52,10 +52,20 @@ services.AddSingleton<ITask>(sp => new CreateEmployeeTask(
     sp.GetRequiredService<IErpApiClient>(),
     sp.GetRequiredService<IConfiguration>()
 ));
+//
+services.AddSingleton<ITask>(sp => new UpdateEmployeeTask(
+    sp.GetRequiredService<IAiClient>(),
+    sp.GetRequiredService<IErpApiClient>(),
+    sp.GetRequiredService<IConfiguration>()));
 
 // Add other ITask implementations as needed
 
-services.AddSingleton<IAgent, GemsAgent>();
+services.AddSingleton<IAgent>(sp =>
+    new GemsAgent(
+        sp.GetServices<ITask>().ToList(),
+        sp.GetRequiredService<IMemoryStore>()
+    )
+);
 
 var provider = services.BuildServiceProvider();
 var tasks = provider.GetServices<ITask>().ToList();
@@ -81,32 +91,57 @@ if (runWeb)
 {
     // -------- WEB SERVER MODE --------
     var builder = WebApplication.CreateBuilder();
-    // Copy over DI from your existing 'services'
+    
     foreach (var service in services)
         builder.Services.Add(service);
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
 
     var app = builder.Build();
 
-    app.MapPost("/ai", async (HttpRequest request) =>
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
+    // /ai endpoint (ERP)
+    app.MapPost("/ai", async (GemsAi.Core.Models.PromptRequest req, IAgent agent) =>
     {
-        using var reader = new StreamReader(request.Body);
-        var input = await reader.ReadToEndAsync();
-        if (string.IsNullOrWhiteSpace(input))
+        if (string.IsNullOrWhiteSpace(req.Input))
             return Results.BadRequest("Input required.");
 
         try
         {
-            var output = await agent.RunAsync(input);
+            var output = await agent.RunAsync(req.Input);
             return Results.Ok(output);
         }
         catch (Exception ex)
         {
             return Results.Problem(ex.Message);
         }
-    });
+    })
+    .WithName("RunErpTask")
+    .WithOpenApi();
 
-    Console.WriteLine("🤖 Gems AI Agent HTTP server running on http://localhost:5000/ai");
-    app.Run("http://0.0.0.0:5000");
+    // /chat endpoint (General LLM chat)
+    app.MapPost("/chat", async (GemsAi.Core.Models.PromptRequest req, IAiClient aiClient) =>
+    {
+        if (string.IsNullOrWhiteSpace(req.Input))
+            return Results.BadRequest("Input required.");
+
+        try
+        {
+            var output = await aiClient.GenerateAsync(req.Input);
+            return Results.Ok(output);
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    })
+    .WithName("AskAI")
+    .WithOpenApi();
+
+    Console.WriteLine("🤖 Gems AI Agent HTTP server running on http://localhost:5000/swagger");
+    app.Run("http://localhost:5000");
 }
 else
 {

@@ -1,0 +1,11 @@
+{
+  "RequiredFields": ["name", "department", "new_position", "effective_date", "email", "phone"],
+  "ExampleFormat": {
+    "name": "Enoch Omosebi",
+    "department": "HR",
+    "new_position": "Senior Software Engineer",
+    "effective_date": "2024-06-01",
+    "email": "enoch@company.com",
+    "phone": "+23412345678"
+  }
+}

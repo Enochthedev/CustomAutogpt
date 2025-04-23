@@ -77,6 +77,28 @@ namespace GemsAi.Core.TaskManagement.TaskCommands.Erp
                 }
             }
             return inputs;
+        }  
+        protected async Task EnsureRequiredFieldsFilled(Dictionary<string, string> parsed, List<string> requiredFields, bool isConsole)
+        {
+            foreach (var field in requiredFields)
+            {
+                while (!parsed.ContainsKey(field) || string.IsNullOrWhiteSpace(parsed[field]))
+                {
+                    if (isConsole)
+                    {
+                        Console.Write($"📝 Please enter value for '{field}': ");
+                        var value = Console.ReadLine()?.Trim();
+                        if (!string.IsNullOrEmpty(value))
+                            parsed[field] = value;
+                        else
+                            Console.WriteLine($"'{field}' is required.");
+                    }
+                    else
+                    {
+                        throw new Exception($"Missing required field: {field}");
+                    }
+                }
+            }
         }
     }
 }

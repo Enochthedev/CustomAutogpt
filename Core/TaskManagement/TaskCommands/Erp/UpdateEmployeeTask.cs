@@ -1,23 +1,18 @@
 using GemsAi.Core.Ai;
 using GemsAi.Core.Services;
-using GemsAi.Core.TaskManagement.TaskCommands;
-using GemsAi.Core.NLP.EntityExtraction;
-using GemsAi.Core.Models;
 using Microsoft.Extensions.Configuration;
-using System.Text.Json;
-
+using GemsAi.Core.Models;
 
 namespace GemsAi.Core.TaskManagement.TaskCommands.Erp
 {
-    public class CreateEmployeeTask : ErpTaskBase
+    public class UpdateEmployeeTask : ErpTaskBase
     {
         private readonly IErpApiClient _erpClient;
 
-        // The intent(s) this task handles (lowercase, as LLM outputs)
-        private static readonly HashSet<string> SupportedIntents = new() { "add_employee", "onboard_employee" };
+        private static readonly HashSet<string> SupportedIntents = new() { "update_employee", "edit_employee", "change_employee" };
 
-        public CreateEmployeeTask(IAiClient client, IErpApiClient erpClient, IConfiguration configuration)
-            : base(client, "employee", configuration)
+        public UpdateEmployeeTask(IAiClient client, IErpApiClient erpClient, IConfiguration configuration)
+            : base(client, "update_employee", configuration)
         {
             _erpClient = erpClient;
         }
@@ -25,8 +20,7 @@ namespace GemsAi.Core.TaskManagement.TaskCommands.Erp
         public override bool CanHandle(string input)
         {
             input = input.ToLower();
-            return (input.Contains("add") || input.Contains("onboard") || input.Contains("invite"))
-                && (input.Contains("department") || input.Contains("team") || input.Contains("employee") || input.Contains("staff"));
+            return input.Contains("update") || input.Contains("edit") || input.Contains("change");
         }
 
         public override bool CanHandleIntent(string intent)
@@ -36,17 +30,8 @@ namespace GemsAi.Core.TaskManagement.TaskCommands.Erp
 
         protected override async Task<string> HandleErpOperationAsync(Dictionary<string, string> parsed)
         {
-            var schemaDirectory = _configuration["NLP:SchemaDirectory"];
-            var modulePath = Path.Combine(schemaDirectory, _moduleName + ".json");
-            var schemaJson = await File.ReadAllTextAsync(modulePath);
-            var schema = JsonSerializer.Deserialize<ErpModuleSchema>(schemaJson);
-
-            // --- Ensure all required fields are filled BEFORE entering the loop ---
-            await EnsureRequiredFieldsFilled(parsed, schema.RequiredFields);
-
             while (true)
             {
-                
                 // Show the fields and values
                 Console.WriteLine("Please confirm the following details:");
                 foreach (var kv in parsed)
@@ -57,27 +42,23 @@ namespace GemsAi.Core.TaskManagement.TaskCommands.Erp
 
                 if (confirm == "yes")
                 {
-                    // Proceed with ERP creation
-                    var dto = new CreateEmployeeDto
+                    var dto = new UpdateEmployeeDto
                     {
                         Name = parsed["name"],
                         Department = parsed["department"],
-                        StartDate = DateTime.Parse(parsed["date"]),
-                        email = parsed.ContainsKey("email") ? parsed["email"] : null,
-                        phone = parsed.ContainsKey("phone") ? parsed["phone"] : null,
-                        jobTitle = parsed.ContainsKey("job_title") ? parsed["job_title"] : null
-                        // Assuming other fields are also in parsed
-
+                        NewPosition = parsed["new_position"],
+                        EffectiveDate = DateTime.Parse(parsed["effective_date"]),
+                        Email = parsed["email"],
+                        Phone = parsed["phone"]
                     };
-                    var result = await _erpClient.CreateEmployeeAsync(dto);
+                    var result = await _erpClient.UpdateEmployeeAsync(dto);
 
                     return result.IsSuccess
-                        ? $"✅ Employee '{result.EmployeeName}' created with ID {result.EmployeeId}."
-                        : $"❌ Failed to create employee: {result.ErrorMessage}";
+                        ? $"✅ Employee '{dto.Name}' updated successfully."
+                        : $"❌ Failed to update employee: {result.ErrorMessage}";
                 }
                 else if (confirm == "edit")
                 {
-                    // Let the user edit any field
                     Console.Write("Which field would you like to edit? (" +
                         string.Join("/", parsed.Keys) + "): ");
                     var field = Console.ReadLine()?.Trim().ToLowerInvariant();
