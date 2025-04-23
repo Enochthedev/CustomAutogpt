@@ -16,6 +16,10 @@ namespace GemsAi.Core.Tasks
             if (!Directory.Exists(_taskFolder))
                 Directory.CreateDirectory(_taskFolder);
         }
+        public bool CanHandleIntent(string intent)
+        {
+            return false; // Not handled by default
+        }
 
         public bool CanHandle(string input) =>
             input.ToLower().StartsWith("create a task");

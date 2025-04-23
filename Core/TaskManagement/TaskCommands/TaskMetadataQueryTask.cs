@@ -12,6 +12,10 @@ namespace GemsAi.Core.Tasks
             return lowered.Contains("what model did you use to create it") ||
                    lowered.Contains("what model created the task");
         }
+        public bool CanHandleIntent(string intent)
+        {
+            return false; // Not handled by default
+        }
 
         public Task<string> ExecuteAsync(string input)
         {

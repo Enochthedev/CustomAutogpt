@@ -1,0 +1,8 @@
+{
+  "RequiredFields": ["name", "department", "date"],
+  "ExampleFormat": {
+    "name": "John Doe",
+    "department": "Marketing",
+    "date": "2024-04-20"
+  }
+}

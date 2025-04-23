@@ -4,16 +4,22 @@ using Microsoft.Extensions.DependencyInjection;
 using GemsAi.Core.Agent;
 using GemsAi.Core.Memory;
 using GemsAi.Core.Ai;
-using GemsAi.Core.Tasks;
 using GemsAi.Core.TaskManagement.TaskCommands;
 using GemsAi.Core.LearnedTasks;
-using GemsAi.Core.TaskManagement.TaskCommands.Utils; // For ErpModuleSchema if needed
+using GemsAi.Core.TaskManagement.TaskCommands.Erp;
+using GemsAi.Core.Models;
+using GemsAi.Core.Services;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Http;
 
+// ----- SETUP -----
 
-// Build configuration
+// Read config
 var configuration = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddCommandLine(args)
     .Build();
 
 var services = new ServiceCollection();
@@ -21,11 +27,11 @@ services.AddSingleton<IConfiguration>(configuration);
 services.AddSingleton<HttpClient>();
 services.AddSingleton<IMemoryStore, InMemoryMemoryStore>();
 
-// Register AI client
+// AI client
 var defaultModel = configuration["AI:DefaultModel"] ?? "smolLM2:1.7b";
 services.AddSingleton<IAiClient>(sp => new OllamaClient(sp.GetRequiredService<HttpClient>(), defaultModel));
 
-// Embedder
+// Embedder setup (as before)
 bool useOllamaEmbedder = bool.TryParse(configuration["Embedding:UseOllama"], out var useOllama) && useOllama;
 if (useOllamaEmbedder)
 {
@@ -39,55 +45,109 @@ else
 }
 services.AddSingleton<IVectorMemoryStore, InMemoryVectorMemoryStore>();
 
-// Register ITask implementations EXCEPT ErpTask (handled manually)
-services.Scan(scan => scan
-    .FromAssemblyOf<ITask>()
-    .AddClasses(c => c.AssignableTo<ITask>().Where(t => t != typeof(ErpTask)))
-    .AsImplementedInterfaces()
-    .WithSingletonLifetime());
+// Register ERP tasks (example: CreateEmployeeTask)
+services.AddSingleton<IErpApiClient, DummyErpApiClient>();// Replace with your actual implementation
+services.AddSingleton<ITask>(sp => new CreateEmployeeTask(
+    sp.GetRequiredService<IAiClient>(),
+    sp.GetRequiredService<IErpApiClient>(),
+    sp.GetRequiredService<IConfiguration>()
+));
 
-// Dynamically register ERP module tasks
-var erpModulesDir = Path.Combine("Core", "NLP", "EntityExtraction", "ErpModules");
-if (Directory.Exists(erpModulesDir))
-{
-    foreach (var file in Directory.GetFiles(erpModulesDir, "*.json"))
-    {
-        var moduleName = Path.GetFileNameWithoutExtension(file);
-        services.AddSingleton<ITask>(sp => new ErpTask(sp.GetRequiredService<IAiClient>(), moduleName));
-    }
-}
-else
-{
-    Console.WriteLine($"⚠️ ERP module folder not found: {erpModulesDir}");
-}
+// Add other ITask implementations as needed
 
 services.AddSingleton<IAgent, GemsAgent>();
 
 var provider = services.BuildServiceProvider();
 var tasks = provider.GetServices<ITask>().ToList();
-tasks.AddRange(LearnedTaskManager.LoadLearnedTasks());
+// tasks.AddRange(LearnedTaskManager.LoadLearnedTasks());
 
 var memory = provider.GetRequiredService<IMemoryStore>();
 var agent = new GemsAgent(tasks, memory);
 
-Console.WriteLine("🤖 Gems AI Agent Ready!");
+// ----- MODE SWITCH -----
 
-// Main loop
-while (true)
+// Determine run mode: Console or Web
+bool runWeb = false;
+
+// -- Check for command-line arg
+if (args.Any(arg => arg.Contains("web", StringComparison.OrdinalIgnoreCase)))
+    runWeb = true;
+
+// -- OR config flag
+if (!runWeb && configuration["AppMode"]?.Equals("Web", StringComparison.OrdinalIgnoreCase) == true)
+    runWeb = true;
+
+if (runWeb)
 {
-    Console.Write("> ");
-    var input = Console.ReadLine();
-    if (string.IsNullOrWhiteSpace(input)) continue;
+    // -------- WEB SERVER MODE --------
+    var builder = WebApplication.CreateBuilder();
+    // Copy over DI from your existing 'services'
+    foreach (var service in services)
+        builder.Services.Add(service);
 
-    try
+    var app = builder.Build();
+
+    app.MapPost("/ai", async (HttpRequest request) =>
     {
-        var output = await agent.RunAsync(input);
-        Console.WriteLine(output);
-    }
-    catch (Exception ex)
+        using var reader = new StreamReader(request.Body);
+        var input = await reader.ReadToEndAsync();
+        if (string.IsNullOrWhiteSpace(input))
+            return Results.BadRequest("Input required.");
+
+        try
+        {
+            var output = await agent.RunAsync(input);
+            return Results.Ok(output);
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    });
+
+    Console.WriteLine("🤖 Gems AI Agent HTTP server running on http://localhost:5000/ai");
+    app.Run("http://0.0.0.0:5000");
+}
+else
+{
+    // -------- CONSOLE MODE --------
+    Console.WriteLine("🤖 Gems AI Agent Ready! (Console Mode)");
+
+    while (true)
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"Error: {ex.Message}");
-        Console.ResetColor();
+        Console.Write("> ");
+        var input = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(input)) continue;
+
+        try
+    {
+        // Step 1: Use Ollama to detect the intent
+        var aiClient = provider.GetRequiredService<IAiClient>();
+        var intent = await aiClient.DetectIntentAsync(input);
+
+        // Step 2: Try AI intent-based dispatch
+        var task = tasks.FirstOrDefault(t => t.CanHandleIntent(intent));
+        if (task == null)
+        {
+            // Fallback: Try keyword CanHandle (legacy/compat)
+            task = tasks.FirstOrDefault(t => t.CanHandle(input));
+        }
+
+        if (task != null)
+        {
+            var output = await task.ExecuteAsync(input);
+            Console.WriteLine(output);
+        }
+        else
+        {
+            Console.WriteLine("No task could handle the input (intent: " + intent + ").");
+        }
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"Error: {ex.Message}");
+            Console.ResetColor();
+        }
     }
 }

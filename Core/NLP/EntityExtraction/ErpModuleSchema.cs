@@ -1,9 +1,10 @@
-namespace GemsAi.Core.TaskManagement.TaskCommands.Utils
+using System.Collections.Generic;
+
+namespace GemsAi.Core.NLP.EntityExtraction
 {
     public class ErpModuleSchema
     {
         public List<string> RequiredFields { get; set; } = new();
         public Dictionary<string, string> ExampleFormat { get; set; } = new();
-        public List<string>? AvailableEndpoints { get; set; } = new(); // Optional
     }
 }

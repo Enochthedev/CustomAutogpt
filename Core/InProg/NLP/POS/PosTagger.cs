@@ -49,7 +49,6 @@ namespace Core.InProg.NLP.POS
             {
                 NamedOnnxValue.CreateFromTensor("input_ids", inputIdsTensor),
                 NamedOnnxValue.CreateFromTensor("attention_mask", attentionTensor),
-                NamedOnnxValue.CreateFromTensor("token_type_ids", tokenTypeIds)
             };
 
             using var results = _session.Run(inputs);

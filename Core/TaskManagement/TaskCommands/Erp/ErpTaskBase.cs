@@ -1,25 +1,34 @@
 using System.Text.Json;
 using GemsAi.Core.Ai;
-using GemsAi.Core.TaskManagement.TaskCommands.Utils;
+using GemsAi.Core.NLP.EntityExtraction;
+using Microsoft.Extensions.Configuration;
 
-namespace GemsAi.Core.TaskManagement.TaskCommands
+namespace GemsAi.Core.TaskManagement.TaskCommands.Erp
 {
-    public class ErpTask : ITask
+    public abstract class ErpTaskBase : ITask
     {
-        private readonly IAiClient _client;
-        private readonly string _moduleName;
+        protected readonly IAiClient _client;
+        protected readonly string _moduleName;
+        protected readonly IConfiguration _configuration;
 
-        public ErpTask(IAiClient client, string moduleName)
+        protected ErpTaskBase(IAiClient client, string moduleName, IConfiguration configuration)
         {
             _client = client;
             _moduleName = moduleName.ToLower();
+            _configuration = configuration;
         }
 
-        public bool CanHandle(string input) => true;
+        public abstract bool CanHandleIntent(string intent);
+        public abstract bool CanHandle(string input);
 
         public async Task<string> ExecuteAsync(string input)
         {
-            var modulePath = Path.Combine("Core", "NLP", "EntityExtraction", "ErpModules", _moduleName + ".json");
+            // Use config-based path!
+            var schemaDirectory = _configuration["NLP:SchemaDirectory"];
+            var modulePath = Path.Combine(schemaDirectory, _moduleName + ".json");
+            Console.WriteLine($"[DEBUG] Current directory: {Directory.GetCurrentDirectory()}");
+            Console.WriteLine($"[DEBUG] Looking for schema at: {Path.GetFullPath(modulePath)}");
+
             if (!File.Exists(modulePath))
                 return $"❌ Schema not found for module: {_moduleName}";
 
@@ -38,22 +47,24 @@ namespace GemsAi.Core.TaskManagement.TaskCommands
                 return $"❌ Failed to extract entities: {ex.Message}";
             }
 
-            var missing = schema.RequiredFields.Where(field => !parsed.ContainsKey(field) || string.IsNullOrWhiteSpace(parsed[field])).ToList();
+            var missing = schema.RequiredFields
+                .Where(field => !parsed.ContainsKey(field) || string.IsNullOrWhiteSpace(parsed[field]))
+                .ToList();
+
             if (missing.Any())
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"⚠️ Missing fields: {string.Join(", ", missing)}");
-                Console.ResetColor();
-
                 var additions = PromptForMissingFields(missing);
                 foreach (var pair in additions)
                     parsed[pair.Key] = pair.Value;
             }
 
-            return $"✅ Extracted Data for {_moduleName}:\n{JsonSerializer.Serialize(parsed, new JsonSerializerOptions { WriteIndented = true })}";
+            // Call the concrete ERP action (implemented by derived class)
+            return await HandleErpOperationAsync(parsed);
         }
 
-        private Dictionary<string, string> PromptForMissingFields(List<string> missingFields)
+        protected abstract Task<string> HandleErpOperationAsync(Dictionary<string, string> parsed);
+
+        protected virtual Dictionary<string, string> PromptForMissingFields(List<string> missingFields)
         {
             var inputs = new Dictionary<string, string>();
             foreach (var field in missingFields)

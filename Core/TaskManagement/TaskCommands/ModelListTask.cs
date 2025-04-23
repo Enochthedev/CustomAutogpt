@@ -12,6 +12,10 @@ namespace GemsAi.Core.Tasks
             _client = client;
         }
 
+        public bool CanHandleIntent(string intent)
+        {
+            return false; // Not handled by default
+        }
         public bool CanHandle(string input)
         {
             var lowered = input.ToLower();

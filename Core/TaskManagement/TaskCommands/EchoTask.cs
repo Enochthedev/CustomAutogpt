@@ -10,5 +10,9 @@ namespace GemsAi.Core.Tasks
         {
             return Task.FromResult("Echo: " + input);
         }
+        public bool CanHandleIntent(string intent)
+        {
+            return false; // Not handled by default
+        }
     }
 }

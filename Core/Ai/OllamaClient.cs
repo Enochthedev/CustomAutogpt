@@ -4,16 +4,15 @@ using System.Collections.Generic;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json;
-using GemsAi.Core.TaskManagement.TaskCommands.Utils;
+using System.Linq;
+using System.Threading.Tasks;
+using GemsAi.Core.NLP.EntityExtraction;
+
 namespace GemsAi.Core.Ai
 {
     public class OllamaClient : IAiClient
     {
-        public async Task<string> GenerateAsync(string prompt)
-        {
-            return await GenerateAsync(prompt, null);
-        }
-    private readonly HttpClient _http;
+        private readonly HttpClient _http;
         private readonly string _model;
         public string Model => _model;
 
@@ -21,16 +20,21 @@ namespace GemsAi.Core.Ai
         {
             _http = httpClient;
             if (!CheckOllamaRunningAsync().GetAwaiter().GetResult())
-                    throw new Exception("🛑 Ollama server is not running. Please start it with `ollama serve`.");
+                throw new Exception("🛑 Ollama server is not running. Please start it with `ollama serve`.");
 
-            _model = model ?? GetAvailableModelsAsync().GetAwaiter().GetResult() 
+            // Use available models, or provided one if valid
+            var availableModel = GetAvailableModelsAsync().GetAwaiter().GetResult();
+            _model = model ?? availableModel
                 ?? throw new Exception("No running models found in Ollama.");
         }
+
+        public async Task<string> GenerateAsync(string prompt)
+            => await GenerateAsync(prompt, null);
 
         public async Task<string> GenerateAsync(string prompt, string? modelOverride = null)
         {
             var modelToUse = modelOverride ?? _model;
-            
+
             var response = await _http.PostAsJsonAsync("http://localhost:11434/api/generate", new
             {
                 model = modelToUse,
@@ -42,12 +46,15 @@ namespace GemsAi.Core.Ai
                 throw new Exception("Ollama API failed: " + response.StatusCode);
 
             var json = await response.Content.ReadFromJsonAsync<OllamaResponse>();
-            return json?.Response ?? "No response.";
+            return json?.Response ?? "No Ai.";
         }
+
         public async Task<string> DetectIntentAsync(string input)
         {
-            string prompt = $"Detect the intent of the following text: \"{input}\"";
-            return await GenerateAsync(prompt, "smolLM2");
+            // Use the exact name you have installed for intent detection!
+            // If smollm2:1.7b is best for this, use that.
+            string prompt = $"Given the following user request, return the most likely intent as a single lowercase snake_case string (e.g., add_employee, update_employee, delete_employee, etc):\n\"{input}\"";
+            return await GenerateAsync(prompt, "smollm2:1.7b");
         }
 
         public async Task<List<string>> GetAllModelsAsync()
@@ -61,35 +68,43 @@ namespace GemsAi.Core.Ai
 
         public async Task<Dictionary<string, string>> ExtractEntitiesAsync(string input, ErpModuleSchema schema)
         {
+            var exampleFormat = schema.ExampleFormat ?? schema.RequiredFields.ToDictionary(f => f, f => $"<{f}>");
+
             string required = string.Join(", ", schema.RequiredFields);
-            string jsonExample = JsonSerializer.Serialize(schema.ExampleFormat);
+            string jsonExample = JsonSerializer.Serialize(exampleFormat);
 
             string prompt = $"""
-            You are a smart ERP NLP engine. Given the following sentence:
+                Given the following user request, extract these fields:
 
-            "{input}"
+                {string.Join(", ", schema.RequiredFields)}
 
-            Extract and return the following fields: {required}
+                Request:
+                "{input}"
 
-            Respond only with JSON in this format:
-            {jsonExample}
-            """;
+                Respond ONLY with JSON in this format (fill as many fields as possible based on the sentence):
 
-            string response = await GenerateAsync(prompt, "gemma:2b");
+                {jsonExample}
 
+                If a field is missing, set its value to an empty string.
+                """;
+
+            // Use a model with strong extraction capability, e.g. gemma:2b
+            string aiResult = await GenerateAsync(prompt, "gemma:2b");
+            console.WriteLine("[DEBUG] AI extracted: " + JsonSerializer.Serialize(parsed));
             try
             {
-                using var doc = JsonDocument.Parse(response);
+                using var doc = JsonDocument.Parse(aiResult);
                 var result = new Dictionary<string, string>();
                 foreach (var prop in doc.RootElement.EnumerateObject())
                     result[prop.Name] = prop.Value.GetString() ?? "";
                 return result;
             }
-            catch
+            catch (Exception)
             {
-                return new Dictionary<string, string> { { "intent", "unknown" } };
+                return schema.RequiredFields.ToDictionary(f => f, f => "");
             }
         }
+
         public async Task<Dictionary<string, string>> ExtractEntitiesAsync(string input)
         {
             // Default fallback schema (can be improved)

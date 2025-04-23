@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using GemsAi.Core.TaskManagement.TaskCommands.Utils;
+using GemsAi.Core.NLP.EntityExtraction;
 
 namespace GemsAi.Core.Ai
 {
