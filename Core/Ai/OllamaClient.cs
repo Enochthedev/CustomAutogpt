@@ -74,29 +74,29 @@ namespace GemsAi.Core.Ai
             string jsonExample = JsonSerializer.Serialize(exampleFormat);
 
             string prompt = $"""
-                Given the following user request, extract these fields:
+            You are a smart ERP data extractor.
 
-                {string.Join(", ", schema.RequiredFields)}
+            For this request:
+            "{input}"
 
-                Request:
-                "{input}"
+            Extract the following fields: {required}
 
-                Respond ONLY with JSON in this format (fill as many fields as possible based on the sentence):
+            Respond ONLY with JSON in this format:
+            {jsonExample}
 
-                {jsonExample}
-
-                If a field is missing, set its value to an empty string.
-                """;
+            Fill as many fields as you can from the sentence. For missing fields, use an empty string.
+            Never use generic values. Only extract exactly what is in the sentence. If unsure, leave blank.
+            """;
 
             // Use a model with strong extraction capability, e.g. gemma:2b
             string aiResult = await GenerateAsync(prompt, "gemma:2b");
-            console.WriteLine("[DEBUG] AI extracted: " + JsonSerializer.Serialize(parsed));
             try
             {
                 using var doc = JsonDocument.Parse(aiResult);
                 var result = new Dictionary<string, string>();
                 foreach (var prop in doc.RootElement.EnumerateObject())
                     result[prop.Name] = prop.Value.GetString() ?? "";
+                Console.WriteLine("[DEBUG] AI extracted: " + JsonSerializer.Serialize(result));
                 return result;
             }
             catch (Exception)
