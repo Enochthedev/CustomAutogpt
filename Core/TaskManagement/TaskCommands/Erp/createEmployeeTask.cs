@@ -1,3 +1,6 @@
+/* This code snippet is a C# class named `CreateEmployeeTask` that extends `ErpTaskBase`. It is a task
+command related to ERP operations for creating an employee. Here is a breakdown of what the code
+does: */
 using GemsAi.Core.Ai;
 using GemsAi.Core.Services;
 using GemsAi.Core.TaskManagement.TaskCommands;
@@ -42,7 +45,7 @@ namespace GemsAi.Core.TaskManagement.TaskCommands.Erp
             var schema = JsonSerializer.Deserialize<ErpModuleSchema>(schemaJson);
 
             // --- Ensure all required fields are filled BEFORE entering the loop ---
-            await EnsureRequiredFieldsFilled(parsed, schema.RequiredFields);
+            await EnsureRequiredFieldsFilled(parsed, schema.RequiredFields, true);
 
             while (true)
             {
