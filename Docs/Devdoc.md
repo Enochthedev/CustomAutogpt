@@ -303,3 +303,319 @@ dotnet add Runner package Scrutor
 dotnet add Runner package Microsoft.Extensions.Configuration
 dotnet add Runner package Microsoft.Extensions.Configuration.Json
 ```
+
+## 📘 Gems AI Documentation  
+
+### Updated on April 30, 2025
+
+---
+
+## 🧠 Overview
+**Gems AI** is a modular, AI-powered ERP assistant built in .NET, designed to automate enterprise processes through intelligent task handling, natural language processing, and per-tenant memory. It interprets human language, extracts relevant data, confirms task structure, and interacts with ERP APIs—all while evolving through use.
+
+---
+
+## 🏗️ System Architecture
+
+Gems AI follows a layered and modular architecture:
+
+- **Core/AI**: Main logic for AI communication and model interaction.
+- **Core/NLP**: Intent and entity parsing, POS tagging, sentiment.
+- **Core/Memory**: Embedding store and namespace-aware memory.
+- **Core/TaskManagement**: Task creation, schema matching, execution.
+- **FastAPI**: Python microservice for ONNX model inference (NER/POS).
+
+### Architecture Diagram (Simplified)
+
+```
+[ User Input ]
+     ↓
+[NLP Pipeline] ──→ [Entity Extraction] & [Intent Detection]
+     ↓
+[Schema Mapper] ←─ [Module JSON Schema]
+     ↓
+[Data Confirmation with User]
+     ↓
+[ERP API Execution]
+```
+
+---
+
+## 🧩 Core Modules
+
+### 🔮 Core/AI
+
+- Communicates with Ollama via `http://localhost:11434`.
+- Uses `/models` endpoint to check available models dynamically.
+- Supports `askWithMemory` to retain past user context.
+- Implements fallback when no model is found or fails.
+
+---
+
+### 🧠 Core/NLP
+
+- **EntityExtractor.cs** reads `EntitySchema.json` to pull structured data.
+- **IntentDetector.cs** compares prompts to `IntentPatterns.json` using weighted matching.
+- POS tagging and NER are performed using ONNX or FastAPI fallback.
+- Sentiment analysis and translation are modular components planned for expansion.
+
+---
+
+### 🧠 Core/Memory
+
+- Memory is stored using vector embeddings (via Ollama or ML.NET).
+- Supports namespace per tenant for isolation.
+- Long inputs are chunked and prioritized by relevance.
+- Can learn facts over time (e.g., "My name is...") and recall.
+
+---
+
+### 🧩 Core/TaskManagement
+
+Each ERP module (like onboarding, payroll) is driven by a JSON schema.
+
+#### How ERP Task Execution Works
+
+1. **Module Is Predefined**: AI is directed to a module (e.g., onboarding).
+2. **Schema JSON File**: Defines:
+   - Required keys (e.g., name, gender, department)
+   - Accepted values and formats
+   - Target API endpoints
+3. **Entity Extraction**: From user prompt (e.g., “Add John to HR” → name: John, department: HR)
+4. **Data Confirmation**: AI formats the data and asks the user to confirm it.
+5. **Execution**: Once confirmed, the data is sent to the ERP API endpoint for that module.
+6. **Learning**: The task and user-confirmed data are stored for future pattern recognition.
+
+---
+
+## 🧠 Python NLP Service (FastAPI)
+
+Located in `/FastAPI/`, it serves ONNX models for high-performance inference.
+
+### Structure
+
+- `/main.py`: Entry point
+- `/model/ner`: NER model + tokenizer
+- `/model/pos`: POS tagger with vocab
+- `/app/routes`: FastAPI route definitions
+
+### Key Endpoints
+
+- `POST /ner`: Named entity recognition
+- `POST /pos`: Part-of-speech tagging
+
+---
+
+## 🧬 Multi-Tenancy Support
+
+- Each tenant has its own namespace in memory and AI logs.
+- Models can optionally be sandboxed or shared.
+- API calls are tagged with `tenantId`.
+
+---
+
+## 🧠 Training & Model Evolution
+
+- Conversations and task interactions are stored with metadata.
+- Periodic vector updates refine memory accuracy.
+- New intents are auto-added to `IntentData.json` for progressive learning.
+
+---
+
+## 🛠️ Running Gems AI Locally
+
+### Prerequisites
+
+| Tool | Minimum Version | Purpose |
+|------|-----------------|---------|
+| .NET SDK | 8.0 | Runs the C# backend |
+| Python | 3.10 | Runs the FastAPI NLP service |
+| Ollama | 0.1.26 | Local LLM host |
+| Docker (optional) | 24.0 | Containerised deployment |
+
+### Quick Start (Bare‑Metal)
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/your-org/gems-ai.git
+cd gems-ai
+
+# 2. Start the Python service (port 8000)
+cd FastAPI
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000 &
+
+# 3. Start the .NET Runner (port 5000)
+cd ../Runner
+dotnet run
+```
+
+Navigate to **<http://localhost:5000/swagger>** for the .NET API explorer.
+
+### Quick Start (Docker Compose)(later iteration)
+
+```bash
+docker compose up -d
+# Services:
+# - gems-dotnet   → http://localhost:5000
+# - gems-fastapi  → http://localhost:8000
+# - ollama        → http://localhost:11434
+```
+
+Add environment overrides in `.env` or `docker-compose.override.yml`.
+
+---
+
+## 🚀 Deployment Guide
+
+### Requirements
+
+- .NET 8 SDK
+- Python 3.10+
+- Ollama CLI installed
+- Docker (optional)
+
+### Running the System
+
+```bash
+# Start Python API
+cd FastAPI && uvicorn main:app --reload
+
+# Start .NET Backend
+dotnet run --project Runner
+
+# Start .NET Webserver
+dotnet run --project Runner --web
+```
+
+### Environment Variables
+
+- `OLLAMA_HOST=http://localhost:11434`
+- `NLP_API=http://localhost:8000`
+
+---
+
+## 📡 API Reference
+
+### .NET API (Runner)
+
+- `POST /ask`: Main AI input
+- `GET /models`: Lists available Ollama models
+- `POST /schema/confirm`: Confirms structured data with user
+
+### FastAPI
+
+- `POST /ner`
+- `POST /pos`
+- `POST /sentiment` *(planned)*
+
+---
+
+## 🧪 Testing & Debugging
+
+- `.Tests/` contains unit tests for each core module.
+- Test JSON input files are available for NLP and TaskManagement.
+- Use `dotnet test` and Python's `pytest` to validate flows.
+
+---
+
+## 📅 Changelog / Roadmap
+
+### ✅ Completed
+
+- Core AI model integration
+- FastAPI Python fallback
+- NLP + Memory + Tasks
+- ERP Schema Mapping
+
+### 🔜 Planned
+
+- Summarization and translation
+- Autonomous agent behavior
+- In-app training dashboard
+
+---
+
+© Gems AI — Empowering smart enterprise automation.
+
+## ✨ Extending ERP Tasks
+
+Each ERP module lives under `Core/TaskManagement/Modules/<ModuleName>/`.
+
+### 1. Create the JSON Schema
+
+1. Inside the module folder, add **`schema.json`** defining:
+
+   ```json
+   {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "title": "OffboardingEmployee",
+     "description": "Off‑board an employee",
+     "type": "object",
+     "required": ["employeeId", "exitDate"],
+     "properties": {
+       "employeeId": { "type": "string" },
+       "exitDate":   { "type": "string", "format": "date" },
+       "assetsReturned": { "type": "boolean" }
+     },
+     "x-endpoint": "POST /api/hr/offboard"
+   }
+   ```
+
+### 2. Implement the Handler
+
+Add a class **`OffboardingTask.cs`**:
+
+```csharp
+public class OffboardingTask : ITaskHandler
+{
+    public string SchemaPath => "Modules/Offboarding/schema.json";
+
+    public async Task<TaskResult> ExecuteAsync(JsonNode data, IServiceProvider sp)
+    {
+        var client = sp.GetRequiredService<IHrApi>();
+        await client.OffboardAsync(data["employeeId"]!.ToString(), DateTime.Parse(data["exitDate"]!.ToString()));
+        return TaskResult.Success;
+    }
+}
+```
+
+Register it in `TaskRegistry.cs`:
+
+```csharp
+registry.Add<OffboardingTask>("offboard_employee");
+```
+
+### 3. Train Patterns (Optional)
+
+Update `IntentPatterns.json`:
+
+```json
+{
+  "offboard_employee": [
+    "offboard *",
+    "terminate employment of *",
+    "remove * from payroll"
+  ]
+}
+```
+
+### 4. Test
+
+```bash
+dotnet test --filter OffboardingTaskTests
+```
+
+Use Swagger `POST /ask`:
+
+```json
+{
+  "tenantId": "acme",
+  "message": "Please offboard Emily Davis by 12 May 2025"
+}
+```
+
+Confirm the AI’s structured response, then approve.
+
+---
