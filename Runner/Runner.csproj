@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3" />
     <PackageReference Include="Scrutor" Version="6.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
+    <Compile Include="..\Web\**\*.cs" />
   </ItemGroup>
 
   <PropertyGroup>

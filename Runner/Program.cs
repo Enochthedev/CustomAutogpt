@@ -1,3 +1,4 @@
+using GemsAi.Web;
 using System.Net.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ using GemsAi.Core.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Http;
+
 
 // ----- SETUP -----
 
@@ -90,58 +92,7 @@ if (!runWeb && configuration["AppMode"]?.Equals("Web", StringComparison.OrdinalI
 if (runWeb)
 {
     // -------- WEB SERVER MODE --------
-    var builder = WebApplication.CreateBuilder();
-    
-    foreach (var service in services)
-        builder.Services.Add(service);
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
-
-    var app = builder.Build();
-
-    app.UseSwagger();
-    app.UseSwaggerUI();
-
-    // /ai endpoint (ERP)
-    app.MapPost("/ai", async (GemsAi.Core.Models.PromptRequest req, IAgent agent) =>
-    {
-        if (string.IsNullOrWhiteSpace(req.Input))
-            return Results.BadRequest("Input required.");
-
-        try
-        {
-            var output = await agent.RunAsync(req.Input);
-            return Results.Ok(output);
-        }
-        catch (Exception ex)
-        {
-            return Results.Problem(ex.Message);
-        }
-    })
-    .WithName("RunErpTask")
-    .WithOpenApi();
-
-    // /chat endpoint (General LLM chat)
-    app.MapPost("/chat", async (GemsAi.Core.Models.PromptRequest req, IAiClient aiClient) =>
-    {
-        if (string.IsNullOrWhiteSpace(req.Input))
-            return Results.BadRequest("Input required.");
-
-        try
-        {
-            var output = await aiClient.GenerateAsync(req.Input);
-            return Results.Ok(output);
-        }
-        catch (Exception ex)
-        {
-            return Results.Problem(ex.Message);
-        }
-    })
-    .WithName("AskAI")
-    .WithOpenApi();
-
-    Console.WriteLine("🤖 Gems AI Agent HTTP server running on http://localhost:5000/swagger");
-    app.Run("http://localhost:5000");
+   await WebServer.StartAsync(args, services);
 }
 else
 {
